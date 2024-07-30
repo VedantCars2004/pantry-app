@@ -289,30 +289,7 @@ export default function Home() {
                     )}
                   </Stack>
                   
-                  {pantry.length > 0 && (
-                    <Button 
-                      variant="contained" 
-                      onClick={getRecipes}
-                      disabled={isLoading}
-                      size="large"
-                      sx={{ 
-                        mt: 4, 
-                        display: 'block',
-                        margin: '20px auto 0',
-                        py: 2,
-                        px: 6,
-                        fontWeight: 'bold',
-                        borderRadius: 50,
-                      }}
-                    >
-                      {isLoading ? 'Getting Recipes...' : `Get Recipes (${pantry.length})`}
-                    </Button>
-                  )}
-                  {error && (
-                    <Typography color="error" textAlign="center" mt={2} variant="body2">
-                      {error}
-                    </Typography>
-                  )}
+                  
                 </Box>
               </Paper>
             </Grid>
@@ -331,6 +308,29 @@ export default function Home() {
                   <Typography variant="h5" fontWeight="bold">
                     My Favorite Recipes
                   </Typography>
+                  {pantry.length > 0 && (
+                    <Button 
+                      variant="contained" 
+                      onClick={getRecipes}
+                      disabled={isLoading}
+                      size="large"
+                      sx={{ 
+                       
+                        display: 'block',
+                        py: 2,
+                        px: 6,
+                        fontWeight: 'bold',
+                        borderRadius: 50,
+                      }}
+                    >
+                      {isLoading ? 'Getting Recipes...' : `Get Recipes (${pantry.length})`}
+                    </Button>
+                  )}
+                  {error && (
+                    <Typography color="error" textAlign="center" mt={2} variant="body2">
+                      {error}
+                    </Typography>
+                  )}
                 </Box>
                 
                 <Box p={4} sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
