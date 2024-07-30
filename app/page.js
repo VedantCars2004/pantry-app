@@ -200,7 +200,6 @@ export default function Home() {
     updateFavoriteRecipes()
   }
 
-
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 8 }}>
@@ -267,33 +266,40 @@ export default function Home() {
                             {item.id.charAt(0).toUpperCase() + item.id.slice(1)}
                           </Typography>
                           <Box display="flex" alignItems="center">
-                            <IconButton onClick={() => updateQuantity(item.id, item.quantity - 1)} size="small" sx={{ bgcolor: 'primary.light', color: 'white', '&:hover': { bgcolor: 'primary.main' } }}>
+                            <IconButton 
+                              color="primary"
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            >
                               <RemoveIcon />
                             </IconButton>
-                            <Typography variant="body1" sx={{ mx: 2, minWidth: '24px', textAlign: 'center', fontWeight: 'bold' }}>
+                            <Typography variant="body1" fontWeight="500" mx={2}>
                               {item.quantity}
                             </Typography>
-                            <IconButton onClick={() => updateQuantity(item.id, item.quantity + 1)} size="small" sx={{ bgcolor: 'primary.light', color: 'white', '&:hover': { bgcolor: 'primary.main' } }}>
+                            <IconButton 
+                              color="primary"
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            >
                               <AddIcon />
                             </IconButton>
-                            <IconButton onClick={() => removeItem(item.id)} color="error" size="small" sx={{ ml: 2 }}>
+                            <IconButton 
+                              color="secondary" 
+                              onClick={() => removeItem(item.id)}
+                            >
                               <DeleteOutlineIcon />
                             </IconButton>
                           </Box>
-                        </Paper> 
+                        </Paper>
                       ))
                     ) : (
-                      <Typography variant="body1" color="text.secondary" textAlign="center">
-                        No items in the pantry. Add some groceries!
+                      <Typography variant="body1" color="text.secondary">
+                        No items in pantry.
                       </Typography>
                     )}
                   </Stack>
-                  
-                  
                 </Box>
               </Paper>
             </Grid>
-
+            
             {/* Recipes Section */}
             <Grid item xs={12} md={6}>
               <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', transition: 'transform 0.3s', '&:hover': { transform: 'translateY(-4px)' } }}>
@@ -305,51 +311,49 @@ export default function Home() {
                   alignItems="center" 
                   justifyContent="space-between"
                 >
-                  <Typography variant="h5" fontWeight="bold">
-                    My Favorite Recipes
-                  </Typography>
-                  {pantry.length > 0 && (
-                    <Button 
-                      variant="contained" 
-                      onClick={getRecipes}
-                      disabled={isLoading}
-                      size="large"
-                      sx={{ 
-                       
-                        display: 'block',
-                        py: 2,
-                        px: 6,
-                        fontWeight: 'bold',
-                        borderRadius: 50,
-                      }}
-                    >
-                      {isLoading ? 'Getting Recipes...' : `Get Recipes (${pantry.length})`}
-                    </Button>
-                  )}
-                  {error && (
-                    <Typography color="error" textAlign="center" mt={2} variant="body2">
-                      {error}
+                  <Box display="flex" alignItems="center">
+                    <FavoriteIcon sx={{ fontSize: 32, mr: 2 }} />
+                    <Typography variant="h5" fontWeight="bold">
+                      Favorite Recipes
                     </Typography>
-                  )}
+                  </Box>
                 </Box>
                 
                 <Box p={4} sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
                   <Stack spacing={3}>
                     {favoriteRecipes.length > 0 ? (
                       favoriteRecipes.map((recipe) => (
-                        <Paper key={recipe.id} elevation={0} sx={{ p: 3, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)' }, borderRadius: 3, bgcolor: 'background.default' }}>
-                          <Typography variant="h6" fontWeight="bold" mb={1}>{recipe.name}</Typography>
-                          <Typography variant="body2" color="text.secondary" mb={2}>
-                            Ingredients: {recipe.ingredients.join(', ')}
+                        <Paper
+                          key={recipe.id}
+                          elevation={0}
+                          sx={{
+                            p: 3,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            transition: 'all 0.3s',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
+                            },
+                            borderRadius: 3,
+                            bgcolor: 'background.default',
+                          }}
+                        >
+                          <Typography variant="body1" fontWeight="500">
+                            {recipe.name}
                           </Typography>
-                          <IconButton onClick={() => removeFromFavorites(recipe.id)} color="error" size="small" sx={{ mt: 1 }}>
+                          <IconButton 
+                            color="secondary" 
+                            onClick={() => removeFromFavorites(recipe.id)}
+                          >
                             <DeleteOutlineIcon />
                           </IconButton>
                         </Paper>
                       ))
                     ) : (
-                      <Typography variant="body1" color="text.secondary" textAlign="center">
-                        No favorite recipes yet. Add some from the recipe recommendations!
+                      <Typography variant="body1" color="text.secondary">
+                        No favorite recipes.
                       </Typography>
                     )}
                   </Stack>
@@ -359,133 +363,114 @@ export default function Home() {
           </Grid>
 
           {/* Add Item Modal */}
-          <Modal 
-            open={open} 
-            onClose={handleClose} 
-            aria-labelledby="modal-modal-title" 
-            aria-describedby="modal-modal-description"
+          <Modal
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="add-item-modal-title"
+            aria-describedby="add-item-modal-description"
           >
-            <Box sx={{ 
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 450,
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
-              borderRadius: 4,
-            }}> 
-              <Typography id="modal-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold">
-                Add Item to Pantry
+            <Box sx={modalStyle}>
+              <Typography id="add-item-modal-title" variant="h6" component="h2" mb={2}>
+                Add Item
               </Typography>
-              <Stack spacing={3}>
-                <TextField 
-                  label="Item Name" 
-                  variant="outlined" 
-                  fullWidth={true} 
-                  value={itemName} 
-                  onChange={(e) => setItemName(e.target.value)}
-                  size="medium"
-                />
-                <TextField 
-                  label="Quantity" 
-                  variant="outlined" 
-                  type="number" 
-                  fullWidth={true} 
-                  value={itemQuantity} 
-                  onChange={(e) => setItemQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  inputProps={{ min: 1 }}
-                  size="medium"
-                />
-                <Button 
-                  variant="contained" 
-                  onClick={() => {
-                    if (itemName.trim() !== '') {
-                      addItem(itemName.trim(), itemQuantity)
-                      setItemName('')
-                      setItemQuantity(1)
-                      handleClose()
-                    }
-                  }}
-                  sx={{ py: 1.5, fontWeight: 'bold' }}
-                >
-                  Add Item
-                </Button>
-              </Stack>
+              <TextField
+                fullWidth
+                label="Item Name"
+                variant="outlined"
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="Quantity"
+                variant="outlined"
+                type="number"
+                value={itemQuantity}
+                onChange={(e) => setItemQuantity(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <Button 
+                variant="contained" 
+                onClick={() => {
+                  addItem(itemName, itemQuantity)
+                  handleClose()
+                  setItemName('')
+                  setItemQuantity(1)
+                }}
+                fullWidth
+                sx={{
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  color: 'white',
+                  fontWeight: 'bold',
+                }}
+              >
+                Add
+              </Button>
             </Box>
           </Modal>
 
-          {/* Recipe Recommendations Modal */}
-          <Modal 
-            open={recipeModalOpen} 
-            onClose={() => setRecipeModalOpen(false)} 
-            aria-labelledby="recipe-modal-title" 
+          {/* Recipe Modal */}
+          <Modal
+            open={recipeModalOpen}
+            onClose={() => setRecipeModalOpen(false)}
+            aria-labelledby="recipe-modal-title"
             aria-describedby="recipe-modal-description"
           >
-            <Box sx={{ 
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 500,
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
-              borderRadius: 4,
-            }}> 
-              <Typography id="recipe-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold">
-                Recipe Recommendations
+            <Box sx={{ ...modalStyle, width: '80%', maxHeight: '80vh', overflowY: 'auto' }}>
+              <Typography id="recipe-modal-title" variant="h6" component="h2" mb={2}>
+                Recommended Recipes
               </Typography>
-              <Stack spacing={3}>
-                {recipes.length > 0 ? (
-                  recipes[0].name === "Parsing Error" ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {error}
-                      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem', backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
-                        {recipes[0].ingredients[0]}
-                      </pre>
-                    </Typography>
-                  ) : (
-                    recipes.map((recipe, index) => (
-                      <Paper key={index} elevation={0} sx={{ p: 3, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)' }, borderRadius: 3, bgcolor: 'background.default' }}>
-                        <Typography variant="h6" fontWeight="bold" mb={1}>{recipe.name}</Typography>
-                        <Typography variant="body2" color="text.secondary" mb={2}>
-                          Ingredients: {recipe.ingredients.join(', ')}
-                        </Typography>
-                        <Button
-                          variant="outlined"
-                          startIcon={<FavoriteIcon />}
-                          onClick={() => addToFavorites(recipe)}
-                          sx={{ 
-                            mt: 2, 
-                            borderColor: 'secondary.main', 
-                            color: 'secondary.main',
-                            '&:hover': { 
-                              backgroundColor: 'secondary.light',
-                              borderColor: 'secondary.main',
-                              color: 'white',
-                            }
-                          }}
-                          size="large"
-                        >
-                          Add to Favorites
-                        </Button>
-                      </Paper>
-                    ))
-                  )
-                ) : (
-                  <Typography variant="body1" color="text.secondary" textAlign="center">
-                    {error || "No recipes found. Our AI couldn't generate recipes with the current ingredients. Try adding more varied ingredients to your pantry."}
-                  </Typography>
-                )}
-              </Stack>
-            </Box> 
+              {isLoading ? (
+                <Typography variant="body1">Loading recipes...</Typography>
+              ) : error ? (
+                <Typography variant="body1" color="error">{error}</Typography>
+              ) : recipes.length > 0 ? (
+                recipes.map((recipe) => (
+                  <Paper
+                    key={recipe.name}
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
+                      },
+                      borderRadius: 3,
+                      bgcolor: 'background.default',
+                      mb: 2,
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="body1" fontWeight="500">
+                        {recipe.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Ingredients: {recipe.ingredients.join(', ')}
+                      </Typography>
+                    </Box>
+                    <IconButton 
+                      color="secondary" 
+                      onClick={() => addToFavorites(recipe)}
+                    >
+                      <FavoriteIcon />
+                    </IconButton>
+                  </Paper>
+                ))
+              ) : (
+                <Typography variant="body1" color="text.secondary">
+                  No recipes found.
+                </Typography>
+              )}
+            </Box>
           </Modal>
         </Container>
       </Box>
     </ThemeProvider>
-  );
+  )
 }
