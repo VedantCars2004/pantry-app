@@ -227,7 +227,7 @@ export default function Home() {
               Smart Pantry
             </Typography>
             <Typography variant="h6" mt={2}>
-              Your Intelligent Kitchen Assistant
+              Your Intelligent Kitchen Assistant with AI Recipes
             </Typography>
           </Box>
           <Grid container spacing={4}>
@@ -339,7 +339,7 @@ export default function Home() {
                       disabled={isLoading}
                       sx={{ py: 1.5, fontWeight: 'bold' }}
                     >
-                      {isLoading ? 'Getting Recipes...' : `Get Recipes (${pantry.length})`}
+                      {isLoading ? 'Getting Recipes...' : `Get Recipes with AI (${pantry.length})`}
                     </Button>
                   )}
                   
