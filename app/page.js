@@ -194,11 +194,19 @@ export default function Home() {
     updateFavoriteRecipes()
   }
 
-  const removeFromFavorites = async (recipeId) => {
-    const docRef = doc(collection(firestore, 'favoriteRecipes'), recipeId)
-    await deleteDoc(docRef)
-    updateFavoriteRecipes()
-  }
+  const removeFromFavorites = async (recipeName) => {
+    try {
+      const docRef = doc(collection(firestore, 'favoriteRecipes'), recipeName);
+      await deleteDoc(docRef);
+      console.log(`Recipe "${recipeName}" removed from favorites`);
+      
+      // Update the state locally instead of fetching again from Firestore
+      setFavoriteRecipes(prevRecipes => prevRecipes.filter(recipe => recipe.name !== recipeName));
+    } catch (error) {
+      console.error("Error removing favorite recipe:", error);
+      // Optionally, set an error state to display to the user
+    }
+  };
 
 
   return (
@@ -290,7 +298,7 @@ export default function Home() {
                               {item.quantity}
                             </Typography>
                             <IconButton onClick={() => updateQuantity(item.id, item.quantity + 1)} size="small" sx={{ bgcolor: 'primary.light', color: 'white', '&:hover': { bgcolor: 'primary.main' } }}>
-                              <AddIcon />
+                              <AddIcon  />
                             </IconButton>
                             <IconButton onClick={() => removeItem(item.id)} color="error" size="small" sx={{ ml: 2 }} >
                             <DeleteOutlineIcon />
@@ -373,7 +381,7 @@ export default function Home() {
             </Typography>
           </Box>
           <IconButton
-            onClick={() => removeFromFavorites(user.uid, recipe.id)}
+            onClick={() => removeFromFavorites(recipe.id)}
             color="error"
             size="small"
             sx={{ mt: 1 }}
