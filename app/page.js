@@ -97,6 +97,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [favoriteRecipes, setFavoriteRecipes] = useState([])
+  const [pantrySearch, setPantrySearch] = useState('')
+  const [recipeSearch, setRecipeSearch] = useState('')
 
   const updatePantry = async () => {
     const snapshot = query(collection(firestore, 'pantry'))
@@ -196,6 +198,15 @@ export default function Home() {
     }
   }
 
+  const filteredPantry = pantry.filter(item => 
+    item.id.toLowerCase().includes(pantrySearch.toLowerCase())
+  )
+
+  const filteredFavoriteRecipes = favoriteRecipes.filter(recipe => 
+    recipe.name.toLowerCase().includes(recipeSearch.toLowerCase()) ||
+    recipe.ingredients.some(ing => ing.toLowerCase().includes(recipeSearch.toLowerCase()))
+  )
+
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 8 }}>
@@ -224,20 +235,32 @@ export default function Home() {
                   bgcolor="primary.main" 
                   color="white" 
                   p={3} 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="space-between"
                 >
-                  <Box display="flex" alignItems="center">
-                    <Typography variant="h5" fontWeight="bold">
-                      Pantry Items
-                    </Typography>
-                  </Box>
+                  <Typography variant="h5" fontWeight="bold" mb={2}>
+                    Pantry Items
+                  </Typography>
+                  <Grid display={'flex'} justifyContent={'space-between'}>
+                  <TextField
+                    variant="outlined"
+                    placeholder="Search pantry items..."
+                    value={pantrySearch}
+                    onChange={(e) => setPantrySearch(e.target.value)}
+                    sx={{
+                      bgcolor: 'white',
+                      borderRadius: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': { borderColor: 'transparent' },
+                        '&:hover fieldset': { borderColor: 'transparent' },
+                        '&.Mui-focused fieldset': { borderColor: 'transparent' },
+                      },
+                    }}
+                  />
                   <Button 
                     variant="contained" 
                     onClick={handleOpen} 
                     size="large"
                     sx={{ 
+                      mt: 2,
                       bgcolor: 'white', 
                       color: 'primary.main',
                       '&:hover': { bgcolor: 'primary.light', color: 'white' },
@@ -247,12 +270,13 @@ export default function Home() {
                   >
                     Add Item
                   </Button>
+                  </Grid>
                 </Box>
                 
                 <Box p={4} sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
                   <Stack spacing={3}>
-                    {pantry.length > 0 ? (
-                      pantry.map((item) => (
+                    {filteredPantry.length > 0 ? (
+                      filteredPantry.map((item) => (
                         <Paper
                           key={item.id}
                           elevation={0}
@@ -291,7 +315,7 @@ export default function Home() {
                       ))
                     ) : (
                       <Typography variant="body1" color="text.secondary" textAlign="center">
-                        No items in the pantry. Add some groceries!
+                        No matching items in the pantry.
                       </Typography>
                     )}
                   </Stack>
@@ -305,23 +329,38 @@ export default function Home() {
                   bgcolor="secondary.main" 
                   color="white" 
                   p={3} 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="space-between"
                 >
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" fontWeight="bold" mb={2}>
                     My Favorite Recipes
                   </Typography>
+                  <Grid justifyContent={'space-between'} display={'flex'}>
+                  <TextField
+                    variant="outlined"
+                    placeholder="Search recipes..."
+                    value={recipeSearch}
+                    onChange={(e) => setRecipeSearch(e.target.value)}
+                    sx={{
+                      bgcolor: 'white',
+                      borderRadius: 1,
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': { borderColor: 'transparent' },
+                        '&:hover fieldset': { borderColor: 'transparent' },
+                        '&.Mui-focused fieldset': { borderColor: 'transparent' },
+                      },
+                    }}
+                  />
                   {pantry.length > 0 && (
                     <Button 
                       variant="contained" 
                       onClick={getRecipes}
                       disabled={isLoading}
-                      sx={{ py: 1.5, fontWeight: 'bold' }}
+                      sx={{ mt: 2, py: 1.5, fontWeight: 'bold' }}
                     >
                       {isLoading ? 'Getting Recipes...' : `Get Recipes with AI (${pantry.length})`}
                     </Button>
+                    
                   )}
+                  </Grid>
                 
                   {error && (
                     <Typography color="error" textAlign="center" mt={2} variant="body2">
@@ -332,8 +371,8 @@ export default function Home() {
                 
                 <Box p={4} sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
                   <Stack spacing={3}>
-                    {favoriteRecipes.length > 0 ? (
-                      favoriteRecipes.map((recipe) => (
+                    {filteredFavoriteRecipes.length > 0 ? (
+                      filteredFavoriteRecipes.map((recipe) => (
                         <Paper
                           key={recipe.id}
                           elevation={0}
@@ -355,187 +394,187 @@ export default function Home() {
                             Ingredients: {recipe.ingredients.join(', ')}
                           </Typography>
                           <Accordion sx={{ width: '100%', overflow: 'hidden' }}>
-                            <AccordionSummary
-                              expandIcon={<ExpandMoreIcon />}
-                              aria-controls="panel1a-content"
-                              id="panel1a-header"
-                            >
-                              <Typography variant="subtitle1" fontWeight="bold">Instructions</Typography>
-                            </AccordionSummary>
-                            <AccordionDetails sx={{ overflowX: 'auto', maxWidth: '100%' }}>
-                              <ol style={{ paddingInlineStart: '20px', margin: 0 }}>
-                                {recipe.instructions.map((step, idx) => (
-                                  <li key={idx} style={{ marginBottom: '8px' }}>{step}</li>
-                                ))}
-                              </ol>
-                            </AccordionDetails>
-                          </Accordion>
-                          <IconButton
-                            onClick={() => removeFromFavorites(recipe.id)}
-                            color="error"
-                            size="small"
-                            sx={{ mt: 1 }}
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Paper>
-                      ))
-                    ) : (
-                      <Typography variant="body1" color="text.secondary" textAlign="center">
-                        No favorite recipes yet. Add some from the recipe recommendations!
-                      </Typography>
-                    )}
-                  </Stack>
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
+  <AccordionSummary
+    expandIcon={<ExpandMoreIcon />}
+    aria-controls="panel1a-content"
+    id="panel1a-header"
+  >
+    <Typography variant="subtitle1" fontWeight="bold">Instructions</Typography>
+  </AccordionSummary>
+  <AccordionDetails sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+    <ol style={{ paddingInlineStart: '20px', margin: 0 }}>
+      {recipe.instructions.map((step, idx) => (
+        <li key={idx} style={{ marginBottom: '8px' }}>{step}</li>
+      ))}
+    </ol>
+  </AccordionDetails>
+</Accordion>
+<IconButton
+  onClick={() => removeFromFavorites(recipe.id)}
+  color="error"
+  size="small"
+  sx={{ mt: 1 }}
+>
+  <DeleteOutlineIcon />
+</IconButton>
+</Paper>
+))
+) : (
+<Typography variant="body1" color="text.secondary" textAlign="center">
+  No matching favorite recipes.
+</Typography>
+)}
+</Stack>
+</Box>
+</Paper>
+</Grid>
+</Grid>
 
-          <Modal 
-            open={open} 
-            onClose={handleClose} 
-            aria-labelledby="modal-modal-title" 
-            aria-describedby="modal-modal-description"
-          >
-            <Box sx={{ 
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 450,
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
-              borderRadius: 4,
-            }}> 
-              <Typography id="modal-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold">
-                Add Item to Pantry
-              </Typography>
-              <Stack spacing={3}>
-                <TextField 
-                  label="Item Name" 
-                  variant="outlined" 
-                  fullWidth={true} 
-                  value={itemName} 
-                  onChange={(e) => setItemName(e.target.value)}
-                  size="medium"
-                />
-                <TextField 
-                  label="Quantity" 
-                  variant="outlined" 
-                  type="number" 
-                  fullWidth={true} 
-                  value={itemQuantity} 
-                  onChange={(e) => setItemQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  inputProps={{ min: 1 }}
-                  size="medium"
-                />
-                <Button 
-                  variant="contained" 
-                  onClick={() => {
-                    if (itemName.trim() !== '') {
-                      addItem(itemName.trim(), itemQuantity)
-                      setItemName('')
-                      setItemQuantity(1)
-                      handleClose()
-                    }
-                  }}
-                  sx={{ py: 1.5, fontWeight: 'bold' }}
-                >
-                  Add Item
-                </Button>
-              </Stack>
-            </Box>
-          </Modal>
+<Modal 
+open={open} 
+onClose={handleClose} 
+aria-labelledby="modal-modal-title" 
+aria-describedby="modal-modal-description"
+>
+<Box sx={{ 
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 450,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 4,
+}}> 
+  <Typography id="modal-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold">
+    Add Item to Pantry
+  </Typography>
+  <Stack spacing={3}>
+    <TextField 
+      label="Item Name" 
+      variant="outlined" 
+      fullWidth={true} 
+      value={itemName} 
+      onChange={(e) => setItemName(e.target.value)}
+      size="medium"
+    />
+    <TextField 
+      label="Quantity" 
+      variant="outlined" 
+      type="number" 
+      fullWidth={true} 
+      value={itemQuantity} 
+      onChange={(e) => setItemQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+      inputProps={{ min: 1 }}
+      size="medium"
+    />
+    <Button 
+      variant="contained" 
+      onClick={() => {
+        if (itemName.trim() !== '') {
+          addItem(itemName.trim(), itemQuantity)
+          setItemName('')
+          setItemQuantity(1)
+          handleClose()
+        }
+      }}
+      sx={{ py: 1.5, fontWeight: 'bold' }}
+    >
+      Add Item
+    </Button>
+  </Stack>
+</Box>
+</Modal>
 
-          <Modal 
-            open={recipeModalOpen} 
-            onClose={() => setRecipeModalOpen(false)} 
-            aria-labelledby="recipe-modal-title" 
-            aria-describedby="recipe-modal-description"
-          >
-            <Box sx={{ 
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 500,
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
-              borderRadius: 4,
-            }}> 
-              <Typography id="recipe-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold" color="black">
-                Recipe Recommendations
-              </Typography>
-              <Stack spacing={3}>
-                {recipes.length > 0 ? (
-                  recipes[0].name === "Parsing Error" ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {error}
-                      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem', backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
-                        {recipes[0].ingredients[0]}
-                      </pre>
-                    </Typography>
-                  ) : (
-                    recipes.map((recipe, index) => (
-                      <Paper key={index} elevation={0} sx={{ p: 3, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)' }, borderRadius: 3, bgcolor: 'background.default' }}>
-                        <Typography variant="h6" fontWeight="bold" mb={1}>{recipe.name}</Typography>
-                        <Typography variant="subtitle1" fontWeight="bold" mb={1}>Ingredients:</Typography>
-                        <ul>
-                          {recipe.ingredients.map((ingredient, idx) => (
-                            <li key={idx}>{ingredient}</li>
-                          ))}
-                        </ul>
-                        <Accordion>
-                          <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
-                            aria-controls="panel1a-content"
-                            id="panel1a-header"
-                          >
-                            <Typography variant="subtitle1" fontWeight="bold">Instructions</Typography>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            <ol>
-                              {recipe.instructions.map((step, idx) => (
-                                <li key={idx}>{step}</li>
-                              ))}
-                            </ol>
-                          </AccordionDetails>
-                        </Accordion>
-                        <Button
-                          variant="outlined"
-                          startIcon={<FavoriteIcon />}
-                          onClick={() => addToFavorites(recipe)}
-                          sx={{ 
-                            mt: 2, 
-                            borderColor: 'secondary.main', 
-                            color: 'secondary.main',
-                            '&:hover': { 
-                              backgroundColor: 'secondary.light',
-                              borderColor: 'secondary.main',
-                              color: 'white',
-                            }
-                          }}
-                          size="large"
-                        >
-                          Add to Favorites
-                        </Button>
-                      </Paper>
-                    ))
-                  )
-                ) : (
-                  <Typography variant="body1" color="text.secondary" textAlign="center">
-                    {error || "No recipes found. Our AI couldn't generate recipes with the current ingredients. Try adding more varied ingredients to your pantry."}
-                  </Typography>
-                )}
-              </Stack>
-            </Box> 
-          </Modal>
-        </Container>
-      </Box>
-    </ThemeProvider>
-  );
+<Modal 
+open={recipeModalOpen} 
+onClose={() => setRecipeModalOpen(false)} 
+aria-labelledby="recipe-modal-title" 
+aria-describedby="recipe-modal-description"
+>
+<Box sx={{ 
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 500,
+  maxHeight: '80vh',
+  overflowY: 'auto',
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 4,
+}}> 
+  <Typography id="recipe-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold" color="black">
+    Recipe Recommendations
+  </Typography>
+  <Stack spacing={3}>
+    {recipes.length > 0 ? (
+      recipes[0].name === "Parsing Error" ? (
+        <Typography variant="body2" color="text.secondary">
+          {error}
+          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '0.75rem', backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
+            {recipes[0].ingredients[0]}
+          </pre>
+        </Typography>
+      ) : (
+        recipes.map((recipe, index) => (
+          <Paper key={index} elevation={0} sx={{ p: 3, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)' }, borderRadius: 3, bgcolor: 'background.default' }}>
+            <Typography variant="h6" fontWeight="bold" mb={1}>{recipe.name}</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" mb={1}>Ingredients:</Typography>
+            <ul>
+              {recipe.ingredients.map((ingredient, idx) => (
+                <li key={idx}>{ingredient}</li>
+              ))}
+            </ul>
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                aria-controls="panel1a-content"
+                id="panel1a-header"
+              >
+                <Typography variant="subtitle1" fontWeight="bold">Instructions</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <ol>
+                  {recipe.instructions.map((step, idx) => (
+                    <li key={idx}>{step}</li>
+                  ))}
+                </ol>
+              </AccordionDetails>
+            </Accordion>
+            <Button
+              variant="outlined"
+              startIcon={<FavoriteIcon />}
+              onClick={() => addToFavorites(recipe)}
+              sx={{ 
+                mt: 2, 
+                borderColor: 'secondary.main', 
+                color: 'secondary.main',
+                '&:hover': { 
+                  backgroundColor: 'secondary.light',
+                  borderColor: 'secondary.main',
+                  color: 'white',
+                }
+              }}
+              size="large"
+            >
+              Add to Favorites
+            </Button>
+          </Paper>
+        ))
+      )
+    ) : (
+      <Typography variant="body1" color="text.secondary" textAlign="center">
+        {error || "No recipes found. Our AI couldn't generate recipes with the current ingredients. Try adding more varied ingredients to your pantry."}
+      </Typography>
+    )}
+  </Stack>
+</Box> 
+</Modal>
+</Container>
+</Box>
+</ThemeProvider>
+);
 }
