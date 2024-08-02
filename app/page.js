@@ -1,4 +1,5 @@
 "use client"
+
 import { Box, Stack, Typography, Container, Paper, Button, Modal, TextField, IconButton, ThemeProvider, createTheme, Grid } from "@mui/material"
 import { firestore } from "./firebase"
 import { collection, query, getDocs, doc, setDoc, deleteDoc, updateDoc } from "firebase/firestore"
@@ -7,21 +8,23 @@ import KitchenIcon from '@mui/icons-material/Kitchen'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
+import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import { getRecipeRecommendations } from './ai'
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#3f51b5', // Indigo
+      main: '#3f51b5',
       light: '#757de8',
       dark: '#002984',
     },
     secondary: {
-      main: '#f50057', // Pink
+      main: '#f50057',
     },
     background: {
-      default: '#f5f5f5', // Light grey
+      default: '#f5f5f5',
       paper: '#ffffff',
     },
     text: {
@@ -80,7 +83,7 @@ const theme = createTheme({
       },
     },
   },
-});
+})
 
 export default function Home() {
   const [pantry, setPantry] = useState([])
@@ -121,18 +124,6 @@ export default function Home() {
     updateFavoriteRecipes()
   }, [])
 
-  const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    p: 4,
-    borderRadius: 3,
-  };
-
   const addItem = async (item, quantity) => {
     const docRef = doc(collection(firestore, 'pantry'), item)
     await setDoc(docRef, { quantity: Number(quantity) })
@@ -156,37 +147,37 @@ export default function Home() {
   }
 
   const getRecipes = async () => {
-    setIsLoading(true);
-    setError(null);
-    const ingredients = pantry.map(item => item.id);
+    setIsLoading(true)
+    setError(null)
+    const ingredients = pantry.map(item => item.id)
     
     if (ingredients.length === 0) {
-      setError('No ingredients in pantry');
-      setIsLoading(false);
-      return;
+      setError('No ingredients in pantry')
+      setIsLoading(false)
+      return
     }
     
     try {
-      const recommendedRecipes = await getRecipeRecommendations(ingredients);
+      const recommendedRecipes = await getRecipeRecommendations(ingredients)
       
       if (!recommendedRecipes || recommendedRecipes.length === 0) {
-        setError('No recipes were returned from the API.');
-        setRecipes([]);
+        setError('No recipes were returned from the API.')
+        setRecipes([])
       } else if (recommendedRecipes[0].name === "Parsing Error") {
-        setError('Error parsing API response. Raw response:');
-        setRecipes(recommendedRecipes);
+        setError('Error parsing API response. Raw response:')
+        setRecipes(recommendedRecipes)
       } else {
-        setRecipes(recommendedRecipes);
+        setRecipes(recommendedRecipes)
       }
-      setRecipeModalOpen(true);
+      setRecipeModalOpen(true)
     } catch (error) {
-      console.error('Error getting recipes:', error);
-      setError(`Failed to get recipes. Error: ${error.message}`);
-      setRecipes([]);
+      console.error('Error getting recipes:', error)
+      setError(`Failed to get recipes. Error: ${error.message}`)
+      setRecipes([])
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const addToFavorites = async (recipe) => {
     const docRef = doc(collection(firestore, 'favoriteRecipes'), recipe.name)
@@ -196,24 +187,20 @@ export default function Home() {
 
   const removeFromFavorites = async (recipeName) => {
     try {
-      const docRef = doc(collection(firestore, 'favoriteRecipes'), recipeName);
-      await deleteDoc(docRef);
-      console.log(`Recipe "${recipeName}" removed from favorites`);
-      
-      // Update the state locally instead of fetching again from Firestore
-      setFavoriteRecipes(prevRecipes => prevRecipes.filter(recipe => recipe.name !== recipeName));
+      const docRef = doc(collection(firestore, 'favoriteRecipes'), recipeName)
+      await deleteDoc(docRef)
+      console.log(`Recipe "${recipeName}" removed from favorites`)
+      setFavoriteRecipes(prevRecipes => prevRecipes.filter(recipe => recipe.name !== recipeName))
     } catch (error) {
-      console.error("Error removing favorite recipe:", error);
-      // Optionally, set an error state to display to the user
+      console.error("Error removing favorite recipe:", error)
     }
-  };
-
+  }
 
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 8 }}>
         <Container maxWidth="lg">
-        <Box sx={{
+          <Box sx={{
             p: 4,
             mb: 6,
             borderRadius: 3,
@@ -231,7 +218,6 @@ export default function Home() {
             </Typography>
           </Box>
           <Grid container spacing={4}>
-            {/* Pantry Section */}
             <Grid item xs={12} md={6}>
               <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', transition: 'transform 0.3s', '&:hover': { transform: 'translateY(-4px)' } }}>
                 <Box 
@@ -243,7 +229,6 @@ export default function Home() {
                   justifyContent="space-between"
                 >
                   <Box display="flex" alignItems="center">
-                    
                     <Typography variant="h5" fontWeight="bold">
                       Pantry Items
                     </Typography>
@@ -284,9 +269,7 @@ export default function Home() {
                             borderRadius: 3,
                             bgcolor: 'background.default',
                           }}
-                          
                         >
-                           
                           <Typography variant="body1" fontWeight="500">
                             {item.id.charAt(0).toUpperCase() + item.id.slice(1)}
                           </Typography>
@@ -312,13 +295,10 @@ export default function Home() {
                       </Typography>
                     )}
                   </Stack>
-                  
-                  
                 </Box>
               </Paper>
             </Grid>
 
-            {/* Recipes Section */}
             <Grid item xs={12} md={6}>
               <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', transition: 'transform 0.3s', '&:hover': { transform: 'translateY(-4px)' } }}>
                 <Box 
@@ -342,7 +322,6 @@ export default function Home() {
                       {isLoading ? 'Getting Recipes...' : `Get Recipes with AI (${pantry.length})`}
                     </Button>
                   )}
-                  
                 
                   {error && (
                     <Typography color="error" textAlign="center" mt={2} variant="body2">
@@ -352,57 +331,66 @@ export default function Home() {
                 </Box>
                 
                 <Box p={4} sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
-  <Stack spacing={3}>
-    {favoriteRecipes.length > 0 ? (
-      favoriteRecipes.map((recipe) => (
-        <Paper
-          key={recipe.id}
-          elevation={0}
-          sx={{
-            p: 3,
-            transition: 'all 0.3s',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
-            },
-            borderRadius: 3,
-            bgcolor: 'background.default',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Box>
-            <Typography variant="h6" fontWeight="bold" mb={1}>
-              {recipe.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Ingredients: {recipe.ingredients.join(', ')}
-            </Typography>
-          </Box>
-          <IconButton
-            onClick={() => removeFromFavorites(recipe.id)}
-            color="error"
-            size="small"
-            sx={{ mt: 1 }}
-          >
-            <DeleteOutlineIcon />
-          </IconButton>
-        </Paper>
-      ))
-    ) : (
-      <Typography variant="body1" color="text.secondary" textAlign="center">
-        No favorite recipes yet. Add some from the recipe recommendations!
-      </Typography>
-    )}
-  </Stack>
-</Box>
-
+                  <Stack spacing={3}>
+                    {favoriteRecipes.length > 0 ? (
+                      favoriteRecipes.map((recipe) => (
+                        <Paper
+                          key={recipe.id}
+                          elevation={0}
+                          sx={{
+                            p: 3,
+                            transition: 'all 0.3s',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
+                            },
+                            borderRadius: 3,
+                            bgcolor: 'background.default',
+                          }}
+                        >
+                          <Typography variant="h6" fontWeight="bold" mb={1}>
+                            {recipe.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" mb={2}>
+                            Ingredients: {recipe.ingredients.join(', ')}
+                          </Typography>
+                          <Accordion sx={{ width: '100%', overflow: 'hidden' }}>
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon />}
+                              aria-controls="panel1a-content"
+                              id="panel1a-header"
+                            >
+                              <Typography variant="subtitle1" fontWeight="bold">Instructions</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+                              <ol style={{ paddingInlineStart: '20px', margin: 0 }}>
+                                {recipe.instructions.map((step, idx) => (
+                                  <li key={idx} style={{ marginBottom: '8px' }}>{step}</li>
+                                ))}
+                              </ol>
+                            </AccordionDetails>
+                          </Accordion>
+                          <IconButton
+                            onClick={() => removeFromFavorites(recipe.id)}
+                            color="error"
+                            size="small"
+                            sx={{ mt: 1 }}
+                          >
+                            <DeleteOutlineIcon />
+                          </IconButton>
+                        </Paper>
+                      ))
+                    ) : (
+                      <Typography variant="body1" color="text.secondary" textAlign="center">
+                        No favorite recipes yet. Add some from the recipe recommendations!
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
               </Paper>
             </Grid>
           </Grid>
 
-          {/* Add Item Modal */}
           <Modal 
             open={open} 
             onClose={handleClose} 
@@ -460,7 +448,6 @@ export default function Home() {
             </Box>
           </Modal>
 
-          {/* Recipe Recommendations Modal */}
           <Modal 
             open={recipeModalOpen} 
             onClose={() => setRecipeModalOpen(false)} 
@@ -480,7 +467,7 @@ export default function Home() {
               p: 4,
               borderRadius: 4,
             }}> 
-              <Typography id="recipe-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold" color = "black">
+              <Typography id="recipe-modal-title" variant="h5" component="h2" mb={3} fontWeight="bold" color="black">
                 Recipe Recommendations
               </Typography>
               <Stack spacing={3}>
@@ -496,9 +483,28 @@ export default function Home() {
                     recipes.map((recipe, index) => (
                       <Paper key={index} elevation={0} sx={{ p: 3, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)' }, borderRadius: 3, bgcolor: 'background.default' }}>
                         <Typography variant="h6" fontWeight="bold" mb={1}>{recipe.name}</Typography>
-                        <Typography variant="body2" color="text.secondary" mb={2}>
-                          Ingredients: {recipe.ingredients.join(', ')}
-                        </Typography>
+                        <Typography variant="subtitle1" fontWeight="bold" mb={1}>Ingredients:</Typography>
+                        <ul>
+                          {recipe.ingredients.map((ingredient, idx) => (
+                            <li key={idx}>{ingredient}</li>
+                          ))}
+                        </ul>
+                        <Accordion>
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="panel1a-content"
+                            id="panel1a-header"
+                          >
+                            <Typography variant="subtitle1" fontWeight="bold">Instructions</Typography>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                            <ol>
+                              {recipe.instructions.map((step, idx) => (
+                                <li key={idx}>{step}</li>
+                              ))}
+                            </ol>
+                          </AccordionDetails>
+                        </Accordion>
                         <Button
                           variant="outlined"
                           startIcon={<FavoriteIcon />}

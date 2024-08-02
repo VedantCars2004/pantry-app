@@ -14,7 +14,7 @@
     "@google/generative-ai": "^0.16.0",
     "@mui/icons-material": "^5.16.5",
     "@mui/material": "^5.16.5",
-    "firebase": "^10.12.4",
+    "firebase": "^10.12.5",
     "next": "14.2.5",
     "openai": "^4.53.2",
     "react": "^18",

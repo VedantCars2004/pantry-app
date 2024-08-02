@@ -1,13 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = "AIzaSyCRUrCHsh6HEZAtUl6s-pI3ODH7vLfqMUc";
-const genAI = new GoogleGenerativeAI(API_KEY);
 
-// Hypothetical image generation function (replace with actual API call)
-async function generateImageForRecipe(recipeName) {
-  // This is a placeholder. Replace with actual image generation API call
-  return `https://example.com/generated-image-for-${encodeURIComponent(recipeName)}.jpg`;
-}
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 export async function getRecipeRecommendations(ingredients) {
   console.log('Ingredients received in getRecipeRecommendations:', ingredients);
@@ -22,11 +17,16 @@ export async function getRecipeRecommendations(ingredients) {
     throw new Error('No ingredients provided');
   }
 
-  const prompt = `Given these ingredients: ${ingredients.join(', ')}, suggest 5 recipes. Return a JSON array of objects, each with 'name' and 'ingredients' properties. Always return 5 recipes, even if some ingredients are missing. Do not include any markdown formatting or language identifiers in your response, just the raw JSON.`;
+  const prompt = `Given these ingredients in the pantry: ${ingredients.join(', ')}, suggest 5 recipes. For each recipe, provide:
+  1. The recipe name
+  2. A list of ingredients with their measurements
+  3. Step-by-step cooking instructions
+
+  Return a JSON array of objects, each with 'name', 'ingredients', and 'instructions' properties. The 'ingredients' should be an array of strings, each containing the ingredient name and its measurement. The 'instructions' should be an array of strings, each representing a step in the cooking process. Always return 5 recipes, even if some pantry ingredients are not used. Do not include any markdown formatting or language identifiers in your response, just the raw JSON.`;
 
   try {
     console.log('Sending request to Gemini API with prompt:', prompt);
-
+    
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
@@ -34,27 +34,24 @@ export async function getRecipeRecommendations(ingredients) {
 
     console.log('Raw Gemini API response:', text);
 
-    // Clean up the response
     text = text.replace(/```json\n/, '').replace(/\n```$/, '').trim();
 
     try {
       const parsedContent = JSON.parse(text);
       console.log('Parsed content:', parsedContent);
-
-      // Generate images and check if recipe can be made with current ingredients
-      const recipesWithImages = await Promise.all(parsedContent.map(async (recipe) => {
-        const imageUrl = await generateImageForRecipe(recipe.name);
-        const canBeMade = recipe.ingredients.every(ingredient => 
-          ingredients.some(pantryItem => pantryItem.toLowerCase().includes(ingredient.toLowerCase()))
-        );
-        return { ...recipe, imageUrl, canBeMade };
+      
+      // Validate that each recipe has the required properties
+      const validatedContent = parsedContent.map(recipe => ({
+        name: recipe.name || "Unnamed Recipe",
+        ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+        instructions: Array.isArray(recipe.instructions) ? recipe.instructions : []
       }));
 
-      return recipesWithImages;
+      return validatedContent;
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
       console.log('Raw AI response that failed to parse:', text);
-      return [{ name: "Parsing Error", ingredients: [text], imageUrl: null, canBeMade: false }];
+      return [{ name: "Parsing Error", ingredients: [text], instructions: [] }];
     }
   } catch (error) {
     console.error('Error in Gemini API call:', error);
